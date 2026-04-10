@@ -1,0 +1,33 @@
+{
+  "name": "home-defense-website",
+  "version": "1.0.0",
+  "description": "Home defense control panel with arm/disarm and history",
+  "main": "server.js",
+  "scripts": {
+    "build:client": "esbuild frontend/main.jsx --bundle --outfile=public/js/app.js --loader:.js=jsx --sourcemap",
+    "start": "npm run build:client && node server.js",
+    "dev": "nodemon --watch server.js --watch frontend --ext js,jsx --exec \"npm run build:client && node server.js\""
+  },
+  "keywords": [
+    "home-defense",
+    "security",
+    "nodejs",
+    "express"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.23.1",
+    "nodemon": "^3.1.0"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "data/*.json"
+    ]
+  }
+}
