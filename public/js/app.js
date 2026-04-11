@@ -23649,7 +23649,7 @@
 
   // frontend/components/HistoryPage.jsx
   var import_react3 = __toESM(require_react());
-  var PAGE_SIZE = 20;
+  var PAGE_SIZE = 10;
   function toLocalDate2(isoTime) {
     return new Date(isoTime).toLocaleString();
   }
