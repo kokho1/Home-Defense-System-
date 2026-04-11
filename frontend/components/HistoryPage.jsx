@@ -24,6 +24,7 @@ export function HistoryPage() {
   const [loaded, setLoaded] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [page, setPage] = useState(1);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     async function loadHistory() {
@@ -46,11 +47,6 @@ export function HistoryPage() {
   }, []);
 
   async function clearHistory() {
-    const confirmed = window.confirm('Clear all history events?');
-    if (!confirmed) {
-      return;
-    }
-
     setClearing(true);
     setError('');
     setInfo('');
@@ -67,6 +63,7 @@ export function HistoryPage() {
       setEvents([]);
       setPage(1);
       setInfo('History cleared.');
+      setShowDeleteModal(false);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -94,8 +91,12 @@ export function HistoryPage() {
 
       <section className="card">
         <div className="history-actions">
-          <button className="btn btn-secondary btn-small" onClick={clearHistory} disabled={clearing || !loaded}>
-            {clearing ? 'Deleting...' : 'Delete History'}
+          <button
+            className="btn btn-secondary btn-small"
+            onClick={() => setShowDeleteModal(true)}
+            disabled={clearing || !loaded}
+          >
+            Delete History
           </button>
         </div>
 
@@ -165,6 +166,34 @@ export function HistoryPage() {
           </div>
         )}
       </section>
+
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={() => !clearing && setShowDeleteModal(false)}>
+          <div className="modal-card" role="dialog" aria-modal="true" aria-label="Delete history confirmation" onClick={(event) => event.stopPropagation()}>
+            <h3>Delete all history?</h3>
+            <p className="muted">This will remove all arm/disarm notifications.</p>
+
+            <div className="modal-actions">
+              <button
+                className="btn btn-secondary btn-small"
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={clearing}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-disarm btn-small"
+                type="button"
+                onClick={clearHistory}
+                disabled={clearing}
+              >
+                {clearing ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

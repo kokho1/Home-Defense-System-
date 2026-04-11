@@ -23669,6 +23669,7 @@
     const [loaded, setLoaded] = (0, import_react3.useState)(false);
     const [clearing, setClearing] = (0, import_react3.useState)(false);
     const [page2, setPage] = (0, import_react3.useState)(1);
+    const [showDeleteModal, setShowDeleteModal] = (0, import_react3.useState)(false);
     (0, import_react3.useEffect)(() => {
       async function loadHistory() {
         const response = await fetch("/api/history");
@@ -23687,10 +23688,6 @@
       });
     }, []);
     async function clearHistory() {
-      const confirmed = window.confirm("Clear all history events?");
-      if (!confirmed) {
-        return;
-      }
       setClearing(true);
       setError("");
       setInfo("");
@@ -23704,6 +23701,7 @@
         setEvents([]);
         setPage(1);
         setInfo("History cleared.");
+        setShowDeleteModal(false);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -23719,7 +23717,15 @@
     const startDisplay = totalEvents === 0 ? 0 : startIndex + 1;
     const endDisplay = totalEvents === 0 ? 0 : startIndex + visibleEvents.length;
     const showPager = totalPages > 1;
-    return /* @__PURE__ */ import_react3.default.createElement(import_react3.default.Fragment, null, /* @__PURE__ */ import_react3.default.createElement("section", { className: "card hero" }, /* @__PURE__ */ import_react3.default.createElement("p", { className: "eyebrow" }, "Activity Log"), /* @__PURE__ */ import_react3.default.createElement("h2", null, "Arm / Disarm History"), /* @__PURE__ */ import_react3.default.createElement("p", { className: "muted" }, "Latest events appear first.")), /* @__PURE__ */ import_react3.default.createElement("section", { className: "card" }, /* @__PURE__ */ import_react3.default.createElement("div", { className: "history-actions" }, /* @__PURE__ */ import_react3.default.createElement("button", { className: "btn btn-secondary btn-small", onClick: clearHistory, disabled: clearing || !loaded }, clearing ? "Deleting..." : "Delete History")), !loaded && /* @__PURE__ */ import_react3.default.createElement("p", { className: "muted" }, "Loading history..."), loaded && error && /* @__PURE__ */ import_react3.default.createElement("p", { className: "muted empty-message" }, error), loaded && !error && info && /* @__PURE__ */ import_react3.default.createElement("p", { className: "muted empty-message" }, info), loaded && !error && events.length === 0 && /* @__PURE__ */ import_react3.default.createElement("p", { className: "muted empty-message" }, "No events yet. Arm or disarm the system to start tracking activity."), loaded && !error && totalEvents > 0 && /* @__PURE__ */ import_react3.default.createElement("ul", { className: "history-list" }, visibleEvents.map((event) => {
+    return /* @__PURE__ */ import_react3.default.createElement(import_react3.default.Fragment, null, /* @__PURE__ */ import_react3.default.createElement("section", { className: "card hero" }, /* @__PURE__ */ import_react3.default.createElement("p", { className: "eyebrow" }, "Activity Log"), /* @__PURE__ */ import_react3.default.createElement("h2", null, "Arm / Disarm History"), /* @__PURE__ */ import_react3.default.createElement("p", { className: "muted" }, "Latest events appear first.")), /* @__PURE__ */ import_react3.default.createElement("section", { className: "card" }, /* @__PURE__ */ import_react3.default.createElement("div", { className: "history-actions" }, /* @__PURE__ */ import_react3.default.createElement(
+      "button",
+      {
+        className: "btn btn-secondary btn-small",
+        onClick: () => setShowDeleteModal(true),
+        disabled: clearing || !loaded
+      },
+      "Delete History"
+    )), !loaded && /* @__PURE__ */ import_react3.default.createElement("p", { className: "muted" }, "Loading history..."), loaded && error && /* @__PURE__ */ import_react3.default.createElement("p", { className: "muted empty-message" }, error), loaded && !error && info && /* @__PURE__ */ import_react3.default.createElement("p", { className: "muted empty-message" }, info), loaded && !error && events.length === 0 && /* @__PURE__ */ import_react3.default.createElement("p", { className: "muted empty-message" }, "No events yet. Arm or disarm the system to start tracking activity."), loaded && !error && totalEvents > 0 && /* @__PURE__ */ import_react3.default.createElement("ul", { className: "history-list" }, visibleEvents.map((event) => {
       const armed = event.status === "ARMED";
       return /* @__PURE__ */ import_react3.default.createElement("li", { key: event.id }, /* @__PURE__ */ import_react3.default.createElement("span", { className: `event-badge ${armed ? "armed" : "disarmed"}` }, event.action === "ARM_SYSTEM" ? "System Armed" : "System Disarmed"), /* @__PURE__ */ import_react3.default.createElement("span", { className: "muted" }, toLocalDate2(event.timestamp)));
     })), loaded && !error && showPager && /* @__PURE__ */ import_react3.default.createElement("div", { className: "history-footer" }, /* @__PURE__ */ import_react3.default.createElement(
@@ -23742,7 +23748,25 @@
         "aria-label": "Next page"
       },
       "\u2192"
-    )), loaded && !error && !showPager && totalEvents > 0 && /* @__PURE__ */ import_react3.default.createElement("div", { className: "history-footer history-footer-single" }, /* @__PURE__ */ import_react3.default.createElement("span", { className: "muted small-text pager-count" }, "Showing ", startDisplay, "-", endDisplay, " of ", totalEvents))));
+    )), loaded && !error && !showPager && totalEvents > 0 && /* @__PURE__ */ import_react3.default.createElement("div", { className: "history-footer history-footer-single" }, /* @__PURE__ */ import_react3.default.createElement("span", { className: "muted small-text pager-count" }, "Showing ", startDisplay, "-", endDisplay, " of ", totalEvents))), showDeleteModal && /* @__PURE__ */ import_react3.default.createElement("div", { className: "modal-overlay", onClick: () => !clearing && setShowDeleteModal(false) }, /* @__PURE__ */ import_react3.default.createElement("div", { className: "modal-card", role: "dialog", "aria-modal": "true", "aria-label": "Delete history confirmation", onClick: (event) => event.stopPropagation() }, /* @__PURE__ */ import_react3.default.createElement("h3", null, "Delete all history?"), /* @__PURE__ */ import_react3.default.createElement("p", { className: "muted" }, "This will remove all arm/disarm notifications."), /* @__PURE__ */ import_react3.default.createElement("div", { className: "modal-actions" }, /* @__PURE__ */ import_react3.default.createElement(
+      "button",
+      {
+        className: "btn btn-secondary btn-small",
+        type: "button",
+        onClick: () => setShowDeleteModal(false),
+        disabled: clearing
+      },
+      "Cancel"
+    ), /* @__PURE__ */ import_react3.default.createElement(
+      "button",
+      {
+        className: "btn btn-disarm btn-small",
+        type: "button",
+        onClick: clearHistory,
+        disabled: clearing
+      },
+      clearing ? "Deleting..." : "Delete"
+    )))));
   }
 
   // frontend/App.jsx
