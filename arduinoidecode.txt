@@ -1,0 +1,170 @@
+#include <Wire.h>
+#include <I2CKeyPad.h>
+#include <LiquidCrystal_I2C.h>
+
+#define KEYPAD_ADDR 0x20
+#define LCD_ADDR 0x27
+
+I2CKeyPad keypad(KEYPAD_ADDR);
+LiquidCrystal_I2C lcd(LCD_ADDR, 16, 2);
+
+// LED pins
+int redLED = 3;
+int greenLED = 5;
+
+// IR sensor
+int irPin = 4;
+
+// keypad mapping
+char keymap[16] = {
+  'D', '#', '0', '*',
+  'C', '9', '8', '7',
+  'B', '6', '5', '4',
+  'A', '3', '2', '1'
+};
+
+uint8_t lastIndex = 0xFF;
+
+// password
+String correctCode = "1234";
+String input = "";
+int wrongAttempts = 0;
+
+bool isDisarmed = false;
+bool alarmTriggered = false;
+
+// ⭐ NEW: track type of alert
+String alertType = "";
+
+void setup() {
+  Serial.begin(115200);
+
+  Wire.begin(21, 22);
+  keypad.begin();
+
+  lcd.init();
+  lcd.backlight();
+
+  pinMode(redLED, OUTPUT);
+  pinMode(greenLED, OUTPUT);
+
+  // stable input
+  pinMode(irPin, INPUT_PULLUP);
+
+  digitalWrite(redLED, HIGH);
+  digitalWrite(greenLED, LOW);
+
+  lcd.setCursor(0,0);
+  lcd.print("ENTER CODE:");
+}
+
+void loop() {
+
+  // ================= MOTION DETECTION =================
+  if (!isDisarmed) {
+    if (digitalRead(irPin) == LOW) {   // SECOND LED ON
+      alarmTriggered = true;
+      alertType = "MOTION";
+    }
+  }
+
+  // ================= KEYPAD =================
+  uint8_t index = keypad.getKey();
+
+  if (index != 0xFF && index != lastIndex && !alarmTriggered) {
+
+    if (index < 16) {
+      char key = keymap[index];
+
+      Serial.print("Pressed: ");
+      Serial.println(key);
+
+      if (key == '#') {
+        lcd.clear();
+
+        if (input == correctCode) {
+          // ✅ CORRECT
+          lcd.setCursor(0,0);
+          lcd.print("DISARMED");
+
+          digitalWrite(redLED, LOW);
+          digitalWrite(greenLED, HIGH);
+
+          isDisarmed = true;
+          wrongAttempts = 0;
+        }
+        else {
+          // ❌ WRONG
+          wrongAttempts++;
+
+          lcd.setCursor(0,0);
+          lcd.print("WRONG PASS");
+
+          digitalWrite(redLED, HIGH);
+          digitalWrite(greenLED, LOW);
+
+          delay(800);
+
+          // 🚨 immediate trigger on 3rd wrong
+          if (wrongAttempts >= 3) {
+            alarmTriggered = true;
+            alertType = "PASSWORD";
+          }
+
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.print("ENTER CODE:");
+        }
+
+        input = "";
+      }
+
+      else if (key == '*') {
+        input = "";
+        lcd.setCursor(0,1);
+        lcd.print("                ");
+      }
+
+      else {
+        input += key;
+
+        lcd.setCursor(0,1);
+        lcd.print("                ");
+        lcd.setCursor(0,1);
+        lcd.print(input);
+      }
+    }
+
+    lastIndex = index;
+    delay(120);
+  }
+
+  if (index == 0xFF) {
+    lastIndex = 0xFF;
+  }
+
+  // ================= ALARM =================
+  if (alarmTriggered) {
+
+    digitalWrite(greenLED, LOW);
+
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("INTRUDER ALERT!");
+
+    if (alertType == "MOTION") {
+      lcd.setCursor(0,1);
+      lcd.print("MOTION DETECTED");
+    }
+    else if (alertType == "PASSWORD") {
+      lcd.setCursor(0,1);
+      lcd.print("WRONG PASS x3");
+    }
+
+    // 🔴 aggressive blinking (no delay buffer)
+    digitalWrite(redLED, HIGH);
+    delay(150);
+    digitalWrite(redLED, LOW);
+    delay(150);
+  }
+}
