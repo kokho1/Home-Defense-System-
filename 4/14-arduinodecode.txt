@@ -1,0 +1,322 @@
+#include <Wire.h>
+#include <I2CKeyPad.h>
+#include <LiquidCrystal_I2C.h>
+
+#define KEYPAD_ADDR 0x20
+#define LCD_ADDR 0x27
+
+I2CKeyPad keypad(KEYPAD_ADDR);
+LiquidCrystal_I2C lcd(LCD_ADDR, 16, 2);
+
+// LED pins
+int redLED = 3;
+int greenLED = 5;
+
+// IR sensor
+int irPin = 4;
+
+// buzzer
+int buzzerPin = 18;
+
+// keypad mapping
+char keymap[16] = {
+  'D', '#', '0', '*',
+  'C', '9', '8', '7',
+  'B', '6', '5', '4',
+  'A', '3', '2', '1'
+};
+
+uint8_t lastIndex = 0xFF;
+
+// password system
+String correctCode = "1234";
+String secretCode = "9999";   // 🔥 ADDED
+String input = "";
+int wrongAttempts = 0;
+
+bool isDisarmed = false;
+bool alarmTriggered = false;
+bool secretMode = false;      // 🔥 ADDED
+String alertType = "";
+
+void setup() {
+
+  delay(1000);
+
+  Serial.begin(115200);
+
+  Wire.begin(21, 22);
+  keypad.begin();
+
+  lcd.init();
+  lcd.backlight();
+
+  pinMode(redLED, OUTPUT);
+  pinMode(greenLED, OUTPUT);
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(irPin, INPUT_PULLUP);
+
+  digitalWrite(redLED, HIGH);
+  digitalWrite(greenLED, LOW);
+
+  lcd.setCursor(0,0);
+  lcd.print("ENTER CODE:");
+}
+
+void loop() {
+
+  // ================= DISARMED MODE =================
+  if (isDisarmed) {
+
+    digitalWrite(redLED, LOW);
+    digitalWrite(greenLED, HIGH);
+    noTone(buzzerPin);
+
+    lcd.setCursor(0,0);
+    lcd.print("SYSTEM DISARMED ");
+    lcd.setCursor(0,1);
+    lcd.print("Press A to ARM  ");
+
+    uint8_t index = keypad.getKey();
+
+    if (index != 0xFF) {
+      if (index < 16) {
+        char key = keymap[index];
+
+        if (key == 'A') {
+          isDisarmed = false;
+          alarmTriggered = false;
+          wrongAttempts = 0;
+          input = "";
+          secretMode = false; // 🔥 reset
+
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.print("SYSTEM ARMED");
+
+          digitalWrite(redLED, HIGH);
+          digitalWrite(greenLED, LOW);
+
+          tone(buzzerPin, 800);
+          delay(150);
+          noTone(buzzerPin);
+
+          delay(800);
+
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.print("ENTER CODE:");
+        }
+      }
+
+      lastIndex = index;
+      delay(150);
+    }
+
+    if (index == 0xFF) {
+      lastIndex = 0xFF;
+    }
+
+    return;
+  }
+
+  // ================= MOTION DETECTION =================
+  if (digitalRead(irPin) == LOW) {
+    alarmTriggered = true;
+    alertType = "MOTION";
+  }
+
+  // ================= KEYPAD =================
+  uint8_t index = keypad.getKey();
+
+  if (index != 0xFF && index != lastIndex && !alarmTriggered) {
+
+    if (index < 16) {
+      char key = keymap[index];
+
+      if (key == '#') {
+        lcd.clear();
+
+        if (input == correctCode) {
+
+          isDisarmed = true;
+          wrongAttempts = 0;
+          secretMode = false; // 🔥 reset
+
+          lcd.setCursor(0,0);
+          lcd.print("DISARMED");
+
+          digitalWrite(redLED, LOW);
+          digitalWrite(greenLED, HIGH);
+
+          tone(buzzerPin, 1200);
+          delay(150);
+          noTone(buzzerPin);
+          delay(100);
+          tone(buzzerPin, 1500);
+          delay(150);
+          noTone(buzzerPin);
+        }
+        else {
+          wrongAttempts++;
+
+          lcd.setCursor(0,0);
+          lcd.print("WRONG PASS");
+
+          digitalWrite(redLED, HIGH);
+          digitalWrite(greenLED, LOW);
+
+          delay(500);
+
+          if (wrongAttempts >= 3) {
+            alarmTriggered = true;
+            alertType = "PASSWORD";
+          }
+
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.print("ENTER CODE:");
+        }
+
+        input = "";
+      }
+
+      else if (key == '*') {
+        input = "";
+        lcd.setCursor(0,1);
+        lcd.print("                ");
+      }
+
+      else {
+        input += key;
+
+        lcd.setCursor(0,1);
+        lcd.print("                ");
+        lcd.setCursor(0,1);
+        lcd.print(input);
+      }
+    }
+
+    lastIndex = index;
+    delay(80);
+  }
+
+  if (index == 0xFF) {
+    lastIndex = 0xFF;
+  }
+
+  // ================= ALARM =================
+  if (alarmTriggered) {
+
+    digitalWrite(greenLED, LOW);
+
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("INTRUDER ALERT!");
+
+    // 🔥 ADDED (no structure change)
+    uint8_t alarmIndex = keypad.getKey();
+
+    if (alarmIndex != 0xFF && alarmIndex != lastIndex) {
+      if (alarmIndex < 16) {
+
+        char key = keymap[alarmIndex];
+
+        if (key == 'B') {
+          secretMode = true;
+          input = "";
+        }
+
+        else if (key == '#') {
+
+          if (secretMode && input == secretCode) {
+
+            alarmTriggered = false;
+            isDisarmed = true;
+            wrongAttempts = 0;
+            input = "";
+            secretMode = false;
+
+            noTone(buzzerPin);
+
+            digitalWrite(redLED, LOW);
+            digitalWrite(greenLED, HIGH);
+
+            lcd.clear();
+            lcd.setCursor(0,0);
+            lcd.print("SYSTEM DISARMED");
+          }
+
+          else {
+            input = "";
+          }
+        }
+
+        else if (key == '*') {
+          input = "";
+        }
+
+        else {
+          input += key;
+        }
+      }
+
+      lastIndex = 0xFF;
+      delay(40);
+    }
+
+    if (alarmIndex == 0xFF) {
+      lastIndex = 0xFF;
+    }
+
+    // 🔥 display (only replaced this part)
+    lcd.setCursor(0,1);
+    lcd.print("                ");
+    lcd.setCursor(0,1);
+
+    if (secretMode) {
+      if (input.length() == 0) {
+        lcd.print("ENTER SECRET");
+      } else {
+        for (int i = 0; i < input.length(); i++) {
+          lcd.print("*");
+        }
+      }
+    }
+    else {
+      if (alertType == "MOTION") {
+        lcd.print("MOTION DETECTED");
+      }
+      else if (alertType == "PASSWORD") {
+        lcd.print("WRONG PASS x3");
+      }
+    }
+
+    for (int freq = 800; freq <= 2000; freq += 50) {
+
+          tone(buzzerPin, freq);
+          digitalWrite(redLED, HIGH);
+
+          // 🔥 check input multiple times BEFORE delay
+          for (int i = 0; i < 100000000000000000; i++) {
+            if (keypad.getKey() != 0xFF) break;
+          }
+
+          delay(10); // ✅ keep smooth sound
+        }
+
+        for (int freq = 2000; freq >= 800; freq -= 50) {
+
+          tone(buzzerPin, freq);
+          digitalWrite(redLED, LOW);
+
+          // 🔥 check input multiple times BEFORE delay
+          for (int i = 0; i < 10000000000000; i++) {
+            if (keypad.getKey() != 0xFF) break;
+          }
+
+          delay(10); // ✅ keep smooth sound
+        }
+
+  }
+}
