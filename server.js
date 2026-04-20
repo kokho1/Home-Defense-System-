@@ -167,6 +167,7 @@ function renderAppShell(pageTitle) {
   <body>
     <div id="root"></div>
     <script src="/js/app.js"></script>
+    <script src="/js/mqtt-client.js"></script>
   </body>
 </html>`;
 }
