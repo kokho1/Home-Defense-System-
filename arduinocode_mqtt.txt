@@ -3,6 +3,8 @@
 #include <LiquidCrystal_I2C.h>
 #include <ArduinoMqttClient.h>
 #include <WiFiNINA.h>
+#include <string.h>
+#include <time.h> 
 
 #define KEYPAD_ADDR 0x20
 #define LCD_ADDR 0x27
@@ -43,8 +45,11 @@ bool wifi_connected = false;
 bool mqtt_connected = false;
 int NUM_CONNECTION_TIMES = 4;
 
-const char broker[] = "test.mosquitto.org" //replace with real broker
+const char broker[] = "test.mosquitto.org"; //replace with real broker
 int port = 1883; //Unsecured Port
+
+const char topic1[] = "password_login_time";
+const char topic2[] = "set_login_password";
 
 const long interval = 8000;
 unsigned long previousMillis = 0;
@@ -70,13 +75,30 @@ void setup() {
   Serial.print("Attempting to connect to WPA SSID: ");
   Serial.println(ssid);
   for (int i = 0; i <= NUM_CONNECTION_TIMES; i++) {
-    if (WiFi.begin(ssid, pass) == WL_CONNECTED) {
+    if (WiFi.begin(ssid, pwd) == WL_CONNECTED) {
       wifi_connected = true;
       break; 
     }
   }
-  if (wifi_connected) Serial.println("Connected to network");
-  else Serial.println("Failed to connect to network");
+  if (wifi_connected) {
+    // Convert to human readable date time format.
+    Serial.println("Connected to network");
+    configTime(8 * 3600, 0, "pool.ntp.org");  // ← change 8 to your UTC offset
+    Serial.print("Syncing NTP time");
+
+    // Wait until time is actually synced (can take a few seconds)
+    struct tm timeinfo;
+    while (!getLocalTime(&timeinfo)) {
+        Serial.print(".");
+        delay(500);
+    }
+    Serial.println(" Done.");
+  }
+  else {
+    Serial.println("Failed to connect to network");
+  }
+
+  
 
   for (int i = 0; i <= NUM_CONNECTION_TIMES; i++) {
     if (mqttClient.connect(broker, port)) {
@@ -84,8 +106,16 @@ void setup() {
       break;
     }
   }
-  if (mqtt_connected) Serial.println("Conneted to MQTT broker");
-  else Serial.println("Failed to connect to MQTT broker");
+  if (mqtt_connected) {
+    Serial.println("Conneted to MQTT broker");
+    mqttClient.onMessage(onMqttMessage);
+    mqttClient.subscribe(topic2);
+  }
+  else {
+    Serial.println("Failed to connect to MQTT broker");
+  }
+
+  mqttClient.onMessage(onMqttMessage);
 
   Wire.begin(21, 22);
   keypad.begin();
@@ -200,6 +230,24 @@ void loop() {
           tone(buzzerPin, 1500);
           delay(150);
           noTone(buzzerPin);
+
+          if (mqtt_connected) {
+            // Sends message to broker signaling time when user unlocked system.
+            struct tm timeinfo;
+            char timeStr[30];
+        
+            if (getLocalTime(&timeinfo)) {
+                // Formats as e.g. "2025-04-19 14:35:02"
+                strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", &timeinfo);
+            } else {
+                snprintf(timeStr, sizeof(timeStr), "TIME_UNAVAILABLE");
+            }
+        
+            mqttClient.beginMessage(topic1);
+            mqttClient.print("LOGIN_SUCCESS:");
+            mqttClient.print(timeStr);
+            mqttClient.endMessage();
+          }
         }
         else {
           wrongAttempts++;
@@ -365,7 +413,32 @@ void loop() {
   }
 }
 
-void onMqttMessageKey(int keypad_number)
-{
-  //Keypad number setting from website
+void handle_password_setting_logic(byte* payload, unsigned int len) {
+    // ✅ Parse the incoming payload as the new password string
+    String newPassword = "";
+    for (unsigned int i = 0; i < len; i++) {
+        newPassword += (char)payload[i];
+    }
+
+    if (newPassword.length() > 0) {
+        correctCode = newPassword;
+        Serial.print("Password updated to: ");
+        Serial.println(correctCode);
+    }
+}
+
+void onMqttMessage(int messageSize) {
+    String topic = mqttClient.messageTopic();
+    
+    // Read payload into byte array
+    unsigned int len = messageSize;
+    byte payload[len];
+    for (unsigned int i = 0; i < len; i++) {
+        payload[i] = mqttClient.read();
+    }
+
+    // If topic is website setting password.
+    if (topic == topic2) {
+        handle_password_setting_logic(payload, len);
+    }
 }
