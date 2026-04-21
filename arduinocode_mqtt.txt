@@ -2,7 +2,7 @@
 #include <I2CKeyPad.h>
 #include <LiquidCrystal_I2C.h>
 #include <ArduinoMqttClient.h>
-#include <WiFiNINA.h>
+#include <WiFi.h>
 #include <string.h>
 #include <time.h> 
 
@@ -10,8 +10,8 @@
 #define LCD_ADDR 0x27
 
 //Replace with own credentials (@Kok Ho)
-#define SECRET_SSID ""
-#define SECRET_PASS ""
+#define SECRET_SSID "OnePlus 12R"
+#define SECRET_PASS "michellengai"
 
 I2CKeyPad keypad(KEYPAD_ADDR);
 LiquidCrystal_I2C lcd(LCD_ADDR, 16, 2);
@@ -71,49 +71,59 @@ void setup() {
 
   Serial.begin(115200);
 
-  //Attempt to connect to WiFi network.
-  Serial.print("Attempting to connect to WPA SSID: ");
-  Serial.println(ssid);
-  for (int i = 0; i <= NUM_CONNECTION_TIMES; i++) {
-    if (WiFi.begin(ssid, pwd) == WL_CONNECTED) {
-      wifi_connected = true;
-      break; 
-    }
-  }
-  if (wifi_connected) {
-    // Convert to human readable date time format.
-    Serial.println("Connected to network");
-    configTime(8 * 3600, 0, "pool.ntp.org");  // ← change 8 to your UTC offset
-    Serial.print("Syncing NTP time");
+  // 1. WiFi Connection
+      Serial.print("Attempting to connect to SSID: ");
+      Serial.println(ssid);
 
-    // Wait until time is actually synced (can take a few seconds)
-    struct tm timeinfo;
-    while (!getLocalTime(&timeinfo)) {
-        Serial.print(".");
-        delay(500);
-    }
-    Serial.println(" Done.");
-  }
-  else {
-    Serial.println("Failed to connect to network");
-  }
+      for (int i = 0; i < NUM_CONNECTION_TIMES; i++) {
+          WiFi.begin(ssid, pwd);
+          
+          // Give it 10 seconds to connect per attempt
+          int timeout = 0;
+          while (WiFi.status() != WL_CONNECTED && timeout < 20) { 
+              delay(500);
+              Serial.print(".");
+              timeout++;
+          }
 
-  
+          if (WiFi.status() == WL_CONNECTED) {
+              wifi_connected = true;
+              break; 
+          }
+          Serial.println("\nRetry WiFi...");
+      }
 
-  for (int i = 0; i <= NUM_CONNECTION_TIMES; i++) {
-    if (mqttClient.connect(broker, port)) {
-      mqtt_connected = true;
-      break;
-    }
-  }
-  if (mqtt_connected) {
-    Serial.println("Conneted to MQTT broker");
-    mqttClient.onMessage(onMqttMessage);
-    mqttClient.subscribe(topic2);
-  }
-  else {
-    Serial.println("Failed to connect to MQTT broker");
-  }
+      if (wifi_connected) {
+          Serial.println("\nConnected to network");
+          // NTP Syncing (Your logic here is fine)
+          configTime(8 * 3600, 0, "pool.ntp.org");
+          struct tm timeinfo;
+          while (!getLocalTime(&timeinfo)) {
+              delay(500);
+          }
+      }
+
+      // 2. MQTT Connection
+      if (wifi_connected) {
+          for (int i = 0; i < NUM_CONNECTION_TIMES; i++) {
+              // Many brokers require a Client ID, username, or password
+              // If it fails, ensure 'broker' is the IP of your Mosquitto server
+              if (mqttClient.connect(broker, port)) {
+                  mqtt_connected = true;
+                  break;
+              }
+              delay(1000); // Wait between retries
+          }
+
+          if (mqtt_connected) {
+              Serial.println("Connected to MQTT broker");
+              mqttClient.onMessage(onMqttMessage);
+              mqttClient.subscribe(topic2);
+          } else {
+              Serial.print("MQTT connection failed! Error code = ");
+              Serial.println(mqttClient.connectError());
+          }
+      }
 
   mqttClient.onMessage(onMqttMessage);
 
@@ -137,7 +147,7 @@ void setup() {
 
 void loop() {
 
-  mqttClient.poll()
+  mqttClient.poll();
 
   // ================= DISARMED MODE =================
   if (isDisarmed) {
@@ -390,9 +400,9 @@ void loop() {
           digitalWrite(redLED, HIGH);
 
           // 🔥 check input multiple times BEFORE delay
-          for (int i = 0; i < 100000000000000000; i++) {
-            if (keypad.getKey() != 0xFF) break;
-          }
+          // for (int i = 0; i < 100000000000000000; i++) {
+          //   if (keypad.getKey() != 0xFF) break;
+          // }
 
           delay(10); // ✅ keep smooth sound
         }
@@ -402,10 +412,10 @@ void loop() {
           tone(buzzerPin, freq);
           digitalWrite(redLED, LOW);
 
-          // 🔥 check input multiple times BEFORE delay
-          for (int i = 0; i < 10000000000000; i++) {
-            if (keypad.getKey() != 0xFF) break;
-          }
+          // // 🔥 check input multiple times BEFORE delay
+          // for (int i = 0; i < 10000000000000; i++) {
+          //   if (keypad.getKey() != 0xFF) break;
+          // }
 
           delay(10); // ✅ keep smooth sound
         }
