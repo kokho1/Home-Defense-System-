@@ -1084,7 +1084,7 @@
             }
             return dispatcher.useContext(Context);
           }
-          function useState3(initialState) {
+          function useState4(initialState) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useState(initialState);
           }
@@ -1092,11 +1092,11 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useReducer(reducer, initialArg, init);
           }
-          function useRef(initialValue) {
+          function useRef3(initialValue) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
-          function useEffect3(create, deps) {
+          function useEffect4(create, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useEffect(create, deps);
           }
@@ -1879,15 +1879,15 @@
           exports.useContext = useContext;
           exports.useDebugValue = useDebugValue;
           exports.useDeferredValue = useDeferredValue;
-          exports.useEffect = useEffect3;
+          exports.useEffect = useEffect4;
           exports.useId = useId;
           exports.useImperativeHandle = useImperativeHandle;
           exports.useInsertionEffect = useInsertionEffect;
           exports.useLayoutEffect = useLayoutEffect;
           exports.useMemo = useMemo;
           exports.useReducer = useReducer;
-          exports.useRef = useRef;
-          exports.useState = useState3;
+          exports.useRef = useRef3;
+          exports.useState = useState4;
           exports.useSyncExternalStore = useSyncExternalStore;
           exports.useTransition = useTransition;
           exports.version = ReactVersion;
@@ -2383,9 +2383,9 @@
           if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
             __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
           }
-          var React6 = require_react();
+          var React7 = require_react();
           var Scheduler = require_scheduler();
-          var ReactSharedInternals = React6.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React7.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           var suppressWarning = false;
           function setSuppressWarning(newSuppressWarning) {
             {
@@ -3992,7 +3992,7 @@
             {
               if (props.value == null) {
                 if (typeof props.children === "object" && props.children !== null) {
-                  React6.Children.forEach(props.children, function(child) {
+                  React7.Children.forEach(props.children, function(child) {
                     if (child == null) {
                       return;
                     }
@@ -22844,10 +22844,10 @@
           var setErrorHandler = null;
           var setSuspenseHandler = null;
           {
-            var copyWithDeleteImpl = function(obj, path, index2) {
-              var key = path[index2];
+            var copyWithDeleteImpl = function(obj, path2, index2) {
+              var key = path2[index2];
               var updated = isArray(obj) ? obj.slice() : assign({}, obj);
-              if (index2 + 1 === path.length) {
+              if (index2 + 1 === path2.length) {
                 if (isArray(updated)) {
                   updated.splice(key, 1);
                 } else {
@@ -22855,11 +22855,11 @@
                 }
                 return updated;
               }
-              updated[key] = copyWithDeleteImpl(obj[key], path, index2 + 1);
+              updated[key] = copyWithDeleteImpl(obj[key], path2, index2 + 1);
               return updated;
             };
-            var copyWithDelete = function(obj, path) {
-              return copyWithDeleteImpl(obj, path, 0);
+            var copyWithDelete = function(obj, path2) {
+              return copyWithDeleteImpl(obj, path2, 0);
             };
             var copyWithRenameImpl = function(obj, oldPath, newPath, index2) {
               var oldKey = oldPath[index2];
@@ -22897,17 +22897,17 @@
               }
               return copyWithRenameImpl(obj, oldPath, newPath, 0);
             };
-            var copyWithSetImpl = function(obj, path, index2, value) {
-              if (index2 >= path.length) {
+            var copyWithSetImpl = function(obj, path2, index2, value) {
+              if (index2 >= path2.length) {
                 return value;
               }
-              var key = path[index2];
+              var key = path2[index2];
               var updated = isArray(obj) ? obj.slice() : assign({}, obj);
-              updated[key] = copyWithSetImpl(obj[key], path, index2 + 1, value);
+              updated[key] = copyWithSetImpl(obj[key], path2, index2 + 1, value);
               return updated;
             };
-            var copyWithSet = function(obj, path, value) {
-              return copyWithSetImpl(obj, path, 0, value);
+            var copyWithSet = function(obj, path2, value) {
+              return copyWithSetImpl(obj, path2, 0, value);
             };
             var findHook = function(fiber, id) {
               var currentHook2 = fiber.memoizedState;
@@ -22917,10 +22917,10 @@
               }
               return currentHook2;
             };
-            overrideHookState = function(fiber, id, path, value) {
+            overrideHookState = function(fiber, id, path2, value) {
               var hook = findHook(fiber, id);
               if (hook !== null) {
-                var newState = copyWithSet(hook.memoizedState, path, value);
+                var newState = copyWithSet(hook.memoizedState, path2, value);
                 hook.memoizedState = newState;
                 hook.baseState = newState;
                 fiber.memoizedProps = assign({}, fiber.memoizedProps);
@@ -22930,10 +22930,10 @@
                 }
               }
             };
-            overrideHookStateDeletePath = function(fiber, id, path) {
+            overrideHookStateDeletePath = function(fiber, id, path2) {
               var hook = findHook(fiber, id);
               if (hook !== null) {
-                var newState = copyWithDelete(hook.memoizedState, path);
+                var newState = copyWithDelete(hook.memoizedState, path2);
                 hook.memoizedState = newState;
                 hook.baseState = newState;
                 fiber.memoizedProps = assign({}, fiber.memoizedProps);
@@ -22956,8 +22956,8 @@
                 }
               }
             };
-            overrideProps = function(fiber, path, value) {
-              fiber.pendingProps = copyWithSet(fiber.memoizedProps, path, value);
+            overrideProps = function(fiber, path2, value) {
+              fiber.pendingProps = copyWithSet(fiber.memoizedProps, path2, value);
               if (fiber.alternate) {
                 fiber.alternate.pendingProps = fiber.pendingProps;
               }
@@ -22966,8 +22966,8 @@
                 scheduleUpdateOnFiber(root3, fiber, SyncLane, NoTimestamp);
               }
             };
-            overridePropsDeletePath = function(fiber, path) {
-              fiber.pendingProps = copyWithDelete(fiber.memoizedProps, path);
+            overridePropsDeletePath = function(fiber, path2) {
+              fiber.pendingProps = copyWithDelete(fiber.memoizedProps, path2);
               if (fiber.alternate) {
                 fiber.alternate.pendingProps = fiber.pendingProps;
               }
@@ -23582,16 +23582,16 @@
   });
 
   // frontend/main.jsx
-  var import_react5 = __toESM(require_react());
+  var import_react6 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
   // frontend/App.jsx
-  var import_react4 = __toESM(require_react());
+  var import_react5 = __toESM(require_react());
 
   // frontend/components/Layout.jsx
   var import_react = __toESM(require_react());
   function Layout({ page: page2, children }) {
-    return /* @__PURE__ */ import_react.default.createElement(import_react.default.Fragment, null, /* @__PURE__ */ import_react.default.createElement("div", { className: "bg-glow" }), /* @__PURE__ */ import_react.default.createElement("header", { className: "topbar container" }, /* @__PURE__ */ import_react.default.createElement("h1", null, "Sentinel Home Defense"), /* @__PURE__ */ import_react.default.createElement("nav", null, /* @__PURE__ */ import_react.default.createElement("a", { className: page2 === "control" ? "active" : "", href: "/" }, "Control"), /* @__PURE__ */ import_react.default.createElement("a", { className: page2 === "history" ? "active" : "", href: "/history" }, "History"))), /* @__PURE__ */ import_react.default.createElement("main", { className: "container" }, children));
+    return /* @__PURE__ */ import_react.default.createElement(import_react.default.Fragment, null, /* @__PURE__ */ import_react.default.createElement("div", { className: "bg-glow" }), /* @__PURE__ */ import_react.default.createElement("header", { className: "topbar container" }, /* @__PURE__ */ import_react.default.createElement("h1", null, "Sentinel Home Defense"), /* @__PURE__ */ import_react.default.createElement("nav", null, /* @__PURE__ */ import_react.default.createElement("a", { className: page2 === "control" ? "active" : "", href: "/" }, "Control"), /* @__PURE__ */ import_react.default.createElement("a", { className: page2 === "history" ? "active" : "", href: "/history" }, "History"), /* @__PURE__ */ import_react.default.createElement("a", { className: page2 === "password" ? "active" : "", href: "/password" }, "Password Manager"))), /* @__PURE__ */ import_react.default.createElement("main", { className: "container" }, children));
   }
 
   // frontend/components/ControlPage.jsx
@@ -23769,17 +23769,115 @@
     )))));
   }
 
+  // frontend/components/PasswordPage.jsx
+  var import_react4 = __toESM(require_react());
+  function PasswordPage() {
+    const [name, setName] = (0, import_react4.useState)("");
+    const [password, setPassword] = (0, import_react4.useState)("");
+    const [feedback, setFeedback] = (0, import_react4.useState)(null);
+    const [mqttStatus, setMqttStatus] = (0, import_react4.useState)("disconnected");
+    const mqttReady = (0, import_react4.useRef)(false);
+    (0, import_react4.useEffect)(() => {
+      if (!window.MQTTClient) return;
+      if (mqttReady.current) return;
+      mqttReady.current = true;
+      window.MQTTClient.onStatus((status) => setMqttStatus(status));
+      window.MQTTClient.connect();
+    }, []);
+    function handleSet(e) {
+      e.preventDefault();
+      const trimmedPw = password.trim();
+      if (!/^\d{4,6}$/.test(trimmedPw)) {
+        setFeedback({ ok: false, msg: "Password must be 4\u20136 digits." });
+        return;
+      }
+      const payload = name.trim() ? `${trimmedPw} ${name.trim()}` : trimmedPw;
+      const sent = window.MQTTClient?.setPassword(payload);
+      if (sent) {
+        setFeedback({
+          ok: true,
+          msg: name.trim() ? `Password for "${name.trim()}" set to ${trimmedPw}.` : `Password set to ${trimmedPw}.`
+        });
+        setName("");
+        setPassword("");
+      } else {
+        setFeedback({ ok: false, msg: "Not connected to MQTT broker. Please wait and retry." });
+      }
+      setTimeout(() => setFeedback(null), 5e3);
+    }
+    const statusColor = {
+      connected: "#22c55e",
+      disconnected: "#94a3b8",
+      error: "#ef4444"
+    }[mqttStatus] || "#94a3b8";
+    const isConnected = mqttStatus === "connected";
+    return /* @__PURE__ */ import_react4.default.createElement(import_react4.default.Fragment, null, /* @__PURE__ */ import_react4.default.createElement("section", { className: "card hero" }, /* @__PURE__ */ import_react4.default.createElement("div", { className: "hero-copy" }, /* @__PURE__ */ import_react4.default.createElement("p", { className: "eyebrow" }, "Access Control"), /* @__PURE__ */ import_react4.default.createElement("h2", null, "Password Manager"), /* @__PURE__ */ import_react4.default.createElement("p", { className: "muted" }, "Set the keypad password on your Arduino device remotely. Passwords must be 4\u20136 digits and are sent instantly via MQTT.")), /* @__PURE__ */ import_react4.default.createElement("div", { className: "hero-lock", "aria-hidden": "true" }, /* @__PURE__ */ import_react4.default.createElement("span", { className: "hero-lock-icon" }, "\u{1F511}"), /* @__PURE__ */ import_react4.default.createElement("span", { className: "hero-lock-label" }, "Key Manager"))), /* @__PURE__ */ import_react4.default.createElement("section", { className: "card status-card", style: { display: "block" } }, /* @__PURE__ */ import_react4.default.createElement("div", { style: { display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem" } }, /* @__PURE__ */ import_react4.default.createElement("span", { style: {
+      width: 10,
+      height: 10,
+      borderRadius: "50%",
+      background: statusColor,
+      display: "inline-block",
+      flexShrink: 0
+    } }), /* @__PURE__ */ import_react4.default.createElement("span", { style: { fontSize: "0.8rem", color: "#94a3b8", textTransform: "capitalize" } }, "MQTT ", mqttStatus)), /* @__PURE__ */ import_react4.default.createElement("form", { onSubmit: handleSet, style: { display: "flex", flexDirection: "column", gap: "1rem" } }, /* @__PURE__ */ import_react4.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "0.4rem" } }, /* @__PURE__ */ import_react4.default.createElement("label", { style: { fontSize: "0.85rem", color: "#94a3b8" } }, "Name ", /* @__PURE__ */ import_react4.default.createElement("span", { style: { color: "#475569" } }, "(optional)")), /* @__PURE__ */ import_react4.default.createElement(
+      "input",
+      {
+        type: "text",
+        placeholder: "e.g. Alice",
+        value: name,
+        onChange: (e) => setName(e.target.value),
+        style: inputStyle
+      }
+    )), /* @__PURE__ */ import_react4.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "0.4rem" } }, /* @__PURE__ */ import_react4.default.createElement("label", { style: { fontSize: "0.85rem", color: "#94a3b8" } }, "Password ", /* @__PURE__ */ import_react4.default.createElement("span", { style: { color: "#ef4444" } }, "*")), /* @__PURE__ */ import_react4.default.createElement(
+      "input",
+      {
+        type: "text",
+        inputMode: "numeric",
+        pattern: "\\d{4,6}",
+        maxLength: 6,
+        placeholder: "4\u20136 digit code",
+        value: password,
+        onChange: (e) => setPassword(e.target.value.replace(/\D/g, "")),
+        style: inputStyle
+      }
+    ), /* @__PURE__ */ import_react4.default.createElement("span", { style: { fontSize: "0.75rem", color: "#475569" } }, "Numbers only \xB7 4 to 6 digits")), feedback && /* @__PURE__ */ import_react4.default.createElement("p", { style: {
+      fontSize: "0.85rem",
+      color: feedback.ok ? "#22c55e" : "#ef4444",
+      margin: 0
+    } }, feedback.ok ? "\u2713 " : "\u2715 ", feedback.msg), /* @__PURE__ */ import_react4.default.createElement("div", { style: { marginTop: "0.5rem" } }, /* @__PURE__ */ import_react4.default.createElement(
+      "button",
+      {
+        type: "submit",
+        className: "btn btn-arm",
+        disabled: !isConnected || !password.trim(),
+        style: { minWidth: "120px" }
+      },
+      /* @__PURE__ */ import_react4.default.createElement("span", { className: "btn-icon", "aria-hidden": "true" }, "\u{1F4E1}"),
+      "Set Password"
+    ), !isConnected && /* @__PURE__ */ import_react4.default.createElement("span", { style: { marginLeft: "0.75rem", fontSize: "0.8rem", color: "#94a3b8" } }, "Waiting for MQTT connection\u2026")))));
+  }
+  var inputStyle = {
+    padding: "0.6rem 0.75rem",
+    borderRadius: "0.5rem",
+    border: "1px solid #334155",
+    background: "#0f172a",
+    color: "#f8fafc",
+    fontSize: "0.95rem",
+    width: "100%",
+    boxSizing: "border-box"
+  };
+
   // frontend/App.jsx
   function App({ page: page2 }) {
-    return /* @__PURE__ */ import_react4.default.createElement(Layout, { page: page2 }, page2 === "history" ? /* @__PURE__ */ import_react4.default.createElement(HistoryPage, null) : /* @__PURE__ */ import_react4.default.createElement(ControlPage, null));
+    return /* @__PURE__ */ import_react5.default.createElement(Layout, { page: page2 }, page2 === "history" ? /* @__PURE__ */ import_react5.default.createElement(HistoryPage, null) : page2 === "password" ? /* @__PURE__ */ import_react5.default.createElement(PasswordPage, null) : /* @__PURE__ */ import_react5.default.createElement(ControlPage, null));
   }
 
   // frontend/main.jsx
-  var page = window.location.pathname === "/history" ? "history" : "control";
+  var path = window.location.pathname;
+  var page = path === "/history" ? "history" : path === "/password" ? "password" : "control";
   var rootElement = document.getElementById("root");
   var root = (0, import_client.createRoot)(rootElement);
   root.render(
-    /* @__PURE__ */ import_react5.default.createElement(import_react5.default.StrictMode, null, /* @__PURE__ */ import_react5.default.createElement(App, { page }))
+    /* @__PURE__ */ import_react6.default.createElement(import_react6.default.StrictMode, null, /* @__PURE__ */ import_react6.default.createElement(App, { page }))
   );
 })();
 /*! Bundled license information:

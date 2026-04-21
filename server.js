@@ -167,6 +167,7 @@ function renderAppShell(pageTitle) {
   <body>
     <div id="root"></div>
     <script src="/js/app.js"></script>
+    <script src="/js/mqtt.js"></script>
   </body>
 </html>`;
 }
@@ -177,6 +178,10 @@ app.get('/', (req, res) => {
 
 app.get('/history', (req, res) => {
   res.type('html').send(renderAppShell('Sentinel Home Defense - History'));
+});
+
+app.get('/password', (req, res) => {
+  res.type('html').send(renderAppShell('Sentinel Home Defense - Password Manager'));
 });
 
 async function startServer() {
