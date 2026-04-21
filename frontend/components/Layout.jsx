@@ -1,10 +1,10 @@
 import React from 'react';
-
+ 
 export function Layout({ page, children }) {
   return (
     <>
       <div className="bg-glow"></div>
-
+ 
       <header className="topbar container">
         <h1>Sentinel Home Defense</h1>
         <nav>
@@ -14,9 +14,12 @@ export function Layout({ page, children }) {
           <a className={page === 'history' ? 'active' : ''} href="/history">
             History
           </a>
+          <a className={page === 'password' ? 'active' : ''} href="/password">
+            Password Manager
+          </a>
         </nav>
       </header>
-
+ 
       <main className="container">{children}</main>
     </>
   );

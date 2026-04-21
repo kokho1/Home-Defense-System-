@@ -1,5 +1,17 @@
 [
   {
+    "id": 1776740405652,
+    "action": "ARM_SYSTEM",
+    "status": "ARMED",
+    "timestamp": "2026-04-21T03:00:05.651Z"
+  },
+  {
+    "id": 1776740404751,
+    "action": "DISARM_SYSTEM",
+    "status": "DISARMED",
+    "timestamp": "2026-04-21T03:00:04.751Z"
+  },
+  {
     "id": 1775894690641,
     "action": "ARM_SYSTEM",
     "status": "ARMED",
