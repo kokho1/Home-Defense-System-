@@ -15,7 +15,7 @@
   'use strict';
 
   // ── Configuration ──────────────────────────────────────────────────────
-  const BROKER_HOST = 'test.mosquitto.org';
+  const BROKER_HOST = '10.26.216.27';
   const BROKER_PORT = 8080;
   const BROKER_PATH = '/mqtt';
 
