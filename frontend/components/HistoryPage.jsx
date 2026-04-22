@@ -35,6 +35,7 @@ export function HistoryPage() {
   const [clearing, setClearing] = useState(false);
   const [page, setPage] = useState(1);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const mqttReady = useRef(false);
 
   useEffect(() => {
     async function loadHistory() {

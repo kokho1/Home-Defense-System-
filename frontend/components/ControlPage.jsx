@@ -1,4 +1,4 @@
-import React, { useEffect, userRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // ── MQTT Panel ────────────────────────────────────────────────────────────────
 // Uses window.MQTTClient from /js/mqtt-client.js (loaded in the HTML shell).
@@ -153,11 +153,11 @@ export function ControlPage() {
 
     const payload = await response.json();
     setState(payload.state);
-  }
-
     // mode === 'disarm'  → send "1" (disarmed)
     // mode === 'arm'     → send "0" (armed)
     window.MQTTClient?.sendArmStatus(mode === 'disarm');
+  }
+
 
   useEffect(() => {
     loadStatus().catch((err) => setError(err.message));
