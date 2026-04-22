@@ -1,0 +1,159 @@
+// =====================================================================
+//  FINGERPRINT ENROLLMENT SKETCH
+//  Upload this SEPARATELY to enroll fingers into the sensor.
+//  After enrolling, re-upload merged_security_system.ino to run normally.
+//
+//  HOW TO USE:
+//  1. Open Serial Monitor at 115200 baud
+//  2. Type the ID number you want to save (e.g. 1) and press Send
+//  3. Place your finger on the sensor when prompted
+//  4. Lift and place again when prompted
+//  5. Done — finger is saved at that ID
+//  6. Repeat for more fingers (use different IDs: 1, 2, 3...)
+//  7. When finished, re-upload merged_security_system.ino
+// =====================================================================
+
+#include <Adafruit_Fingerprint.h>
+#include <HardwareSerial.h>
+
+HardwareSerial mySerial(2);
+Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
+
+uint8_t id;  // The slot ID to save the fingerprint into (1–127)
+
+
+void setup() {
+  Serial.begin(115200);
+  delay(100);
+
+  mySerial.begin(57600, SERIAL_8N1, 16, 17);
+  finger.begin(57600);
+
+  if (finger.verifyPassword()) {
+    Serial.println("Fingerprint sensor found!");
+  } else {
+    Serial.println("ERROR: Fingerprint sensor not found. Check wiring.");
+    while (1) { delay(1); }
+  }
+
+  Serial.println("---------------------------------------");
+  Serial.println("Type the ID (1-127) to enroll, then press Send.");
+  Serial.println("---------------------------------------");
+}
+
+
+void loop() {
+  // Wait for user to type an ID in Serial Monitor
+  if (Serial.available()) {
+    id = Serial.parseInt();
+
+    if (id < 1 || id > 127) {
+      Serial.println("Invalid ID. Enter a number between 1 and 127.");
+      return;
+    }
+
+    Serial.print("Enrolling finger at ID #");
+    Serial.println(id);
+
+    if (enrollFinger(id)) {
+      Serial.println("SUCCESS! Finger enrolled.");
+    } else {
+      Serial.println("FAILED. Try again.");
+    }
+
+    Serial.println("---------------------------------------");
+    Serial.println("Type another ID to enroll another finger, or re-upload the main sketch.");
+    Serial.println("---------------------------------------");
+  }
+}
+
+
+// -----------------------------------------------------------------------
+//  Enroll a single finger into the given ID slot.
+//  Returns true on success, false on failure.
+// -----------------------------------------------------------------------
+bool enrollFinger(uint8_t id) {
+
+  int p = -1;
+
+  // --- STEP 1: First image ---
+  Serial.println("Place finger on sensor...");
+  while (p != FINGERPRINT_OK) {
+    p = finger.getImage();
+    switch (p) {
+      case FINGERPRINT_OK:
+        Serial.println("Image taken.");
+        break;
+      case FINGERPRINT_NOFINGER:
+        Serial.print(".");
+        break;
+      default:
+        Serial.println("Image error, try again.");
+        break;
+    }
+  }
+
+  p = finger.image2Tz(1);
+  if (p != FINGERPRINT_OK) {
+    Serial.println("Failed to process image 1.");
+    return false;
+  }
+
+  // --- STEP 2: Lift finger ---
+  Serial.println("Remove finger.");
+  delay(2000);
+  p = 0;
+  while (p != FINGERPRINT_NOFINGER) {
+    p = finger.getImage();
+  }
+
+  // --- STEP 3: Second image ---
+  Serial.println("Place the SAME finger again...");
+  p = -1;
+  while (p != FINGERPRINT_OK) {
+    p = finger.getImage();
+    switch (p) {
+      case FINGERPRINT_OK:
+        Serial.println("Image taken.");
+        break;
+      case FINGERPRINT_NOFINGER:
+        Serial.print(".");
+        break;
+      default:
+        Serial.println("Image error, try again.");
+        break;
+    }
+  }
+
+  p = finger.image2Tz(2);
+  if (p != FINGERPRINT_OK) {
+    Serial.println("Failed to process image 2.");
+    return false;
+  }
+
+  // --- STEP 4: Create model from both images ---
+  p = finger.createModel();
+  if (p == FINGERPRINT_OK) {
+    Serial.println("Prints matched! Creating model...");
+  } else if (p == FINGERPRINT_PACKETRECIEVEERR) {
+    Serial.println("Communication error.");
+    return false;
+  } else if (p == FINGERPRINT_ENROLLMISMATCH) {
+    Serial.println("Fingerprints did not match. Try again.");
+    return false;
+  } else {
+    Serial.println("Unknown error creating model.");
+    return false;
+  }
+
+  // --- STEP 5: Store model into sensor flash ---
+  p = finger.storeModel(id);
+  if (p == FINGERPRINT_OK) {
+    Serial.print("Stored at ID #");
+    Serial.println(id);
+    return true;
+  } else {
+    Serial.println("Failed to store model.");
+    return false;
+  }
+}

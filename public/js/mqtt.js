@@ -16,7 +16,7 @@
   'use strict';
  
   // ── Configuration ────────────────────────────────────────────────────────
-  const BROKER_HOST = 'test.mosquitto.org';
+  const BROKER_HOST = '10.26.216.27';
   const BROKER_PORT = 8080;           // WebSocket port (browsers cannot use raw TCP 1883)
   const BROKER_PATH = '/mqtt';        // Mosquitto WebSocket path
   const TOPIC_LOGIN_EVENT  = 'password_login_time';   // Arduino → website
