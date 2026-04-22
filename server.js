@@ -155,6 +155,30 @@ app.delete('/api/history', async (req, res) => {
   res.json({ ok: true });
 });
 
+// Called by mqtt.js (browser) when Arduino publishes on password_login_time.
+// Adds a LOGIN_SUCCESS entry to history without changing the arm state.
+app.post('/api/history/mqtt-login', async (req, res) => {
+  const { action, timestamp, raw } = req.body || {};
+  const label = action || 'LOGIN_SUCCESS';
+
+  const history = await readHistory();
+  const event = {
+    id: Date.now() + eventSequence,
+    action: label,
+    status: systemState.armed ? 'ARMED' : 'DISARMED',
+    timestamp: new Date().toISOString(),
+    detail: timestamp || raw || '',
+  };
+
+  eventSequence += 1;
+
+  const cappedHistory = [event, ...history].slice(0, 200);
+  await writeHistory(cappedHistory);
+
+  res.json({ ok: true, event });
+});
+
+
 function renderAppShell(pageTitle) {
   return `<!DOCTYPE html>
 <html lang="en">

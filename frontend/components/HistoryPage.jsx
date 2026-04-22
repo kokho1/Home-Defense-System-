@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const PAGE_SIZE = 10;
 
@@ -15,6 +15,16 @@ function sortHistory(items) {
 
     return (right.id || 0) - (left.id || 0);
   });
+}
+
+// Human-readable label for any action string
+function actionLabel(action) {
+  switch (action) {
+    case 'ARM_SYSTEM':     return 'System Armed';
+    case 'DISARM_SYSTEM':  return 'System Disarmed';
+    case 'LOGIN_SUCCESS':  return 'Login Success';
+    default:               return action || 'Event';
+  }
 }
 
 export function HistoryPage() {
@@ -46,6 +56,32 @@ export function HistoryPage() {
     });
   }, []);
 
+  // ── MQTT live updates ─────────────────────────────────────────────────
+  // Subscribes to password_login_time. When the Arduino publishes a login
+  // event, append it to the top of the history list immediately.
+  useEffect(() => {
+    if (!window.MQTTClient) return;
+    if (mqttReady.current) return;
+    mqttReady.current = true;
+
+    window.MQTTClient.onLoginEvent((parsed) => {
+      const newEntry = {
+        // Use a float id so it sorts above same-second REST entries
+        id: Date.now() + Math.random(),
+        action: parsed.action || 'LOGIN_SUCCESS',
+        status: 'LOGIN',          // distinct badge style
+        timestamp: new Date().toISOString(),
+        detail: parsed.timestamp || parsed.raw || '',
+      };
+      setEvents(prev => sortHistory([newEntry, ...prev]).slice(0, 200));
+      // Jump back to page 1 so the new entry is immediately visible
+      setPage(1);
+    });
+
+    window.MQTTClient.connect();
+  }, []);
+
+  // ── Clear history ─────────────────────────────────────────────────────
   async function clearHistory() {
     setClearing(true);
     setError('');
@@ -86,7 +122,7 @@ export function HistoryPage() {
       <section className="card hero">
         <p className="eyebrow">Activity Log</p>
         <h2>Arm / Disarm History</h2>
-        <p className="muted">Latest events appear first.</p>
+        <p className="muted">Latest events appear first. Login events arrive live via MQTT.</p>
       </section>
 
       <section className="card">
@@ -115,15 +151,22 @@ export function HistoryPage() {
         {loaded && !error && totalEvents > 0 && (
           <ul className="history-list">
             {visibleEvents.map((event) => {
-              const armed = event.status === 'ARMED';
+              const armed   = event.status === 'ARMED';
+              const isLogin = event.status === 'LOGIN';
+              let badgeClass = isLogin ? 'login' : (armed ? 'armed' : 'disarmed');
               return (
                 <li key={event.id}>
-                  <span className={`event-badge ${armed ? 'armed' : 'disarmed'}`}>
-                    {event.action === 'ARM_SYSTEM'
-                      ? 'System Armed'
-                      : 'System Disarmed'}
+                  <span className={`event-badge ${badgeClass}`}>
+                    {actionLabel(event.action)}
                   </span>
-                  <span className="muted">{toLocalDate(event.timestamp)}</span>
+                  <span className="muted">
+                    {toLocalDate(event.timestamp)}
+                    {event.detail && (
+                      <span style={{ marginLeft: '0.4rem', fontSize: '0.78rem', opacity: 0.7 }}>
+                        · {event.detail}
+                      </span>
+                    )}
+                  </span>
                 </li>
               );
             })}

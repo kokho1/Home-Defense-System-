@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, userRef, useState } from 'react';
 
 // ── MQTT Panel ────────────────────────────────────────────────────────────────
 // Uses window.MQTTClient from /js/mqtt-client.js (loaded in the HTML shell).
@@ -93,7 +93,7 @@ function MQTTPanel() {
       {/* Login Event Log */}
       <div>
         <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
-          Live login events from Arduino ({TOPIC_LOGIN_EVENT}):
+          Live login events from Arduino (password_login_time):
         </p>
         <ul style={{
           listStyle: 'none', margin: 0, padding: 0,
@@ -128,6 +128,7 @@ function toLocalDate(isoTime) {
 export function ControlPage() {
   const [state, setState] = useState(null);
   const [error, setError] = useState('');
+  const mqttReady = useRef(false);
 
   async function loadStatus() {
     const response = await fetch('/api/status');
@@ -154,8 +155,28 @@ export function ControlPage() {
     setState(payload.state);
   }
 
+    // mode === 'disarm'  → send "1" (disarmed)
+    // mode === 'arm'     → send "0" (armed)
+    window.MQTTClient?.sendArmStatus(mode === 'disarm');
+
   useEffect(() => {
     loadStatus().catch((err) => setError(err.message));
+
+    // Subscribe to arm-status updates pushed by the Arduino.
+    // Fires when Arduino publishes on handle_arm_status_send ("1" = disarmed).
+    if (!window.MQTTClient) return;
+    if (mqttReady.current) return;
+    mqttReady.current = true;
+
+    window.MQTTClient.onArmStatus((isDisarmed) => {
+      // Re-fetch state from the server (mqtt.js has already synced it via REST)
+      loadStatus().catch(() => {});
+    });
+
+    // Connect only if not already connected (MQTTPanel also calls connect, but
+    // MQTTClient.connect() is idempotent – safe to call twice)
+    window.MQTTClient.connect();
+
   }, []);
 
   const armed = Boolean(state?.armed);
@@ -218,6 +239,7 @@ export function ControlPage() {
           </button>
         </div>
       </section>
+      <MQTTPanel />
     </>
   );
 }
