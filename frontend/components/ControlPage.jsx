@@ -195,19 +195,23 @@ export function ControlPage() {
 
         <div className={`hero-lock ${armed ? 'armed' : 'disarmed'}`} aria-hidden="true">
           <span className="hero-lock-icon">{armed ? '🔒' : '🔓'}</span>
-          <span className="hero-lock-label">{armed ? 'Locked' : 'Unlocked'}</span>
+          <span className="hero-lock-label" style={{ color: armed ? '#ef4444' : '#22c55e' }}>
+            {armed ? 'Locked' : 'Unlocked'}
+          </span>
         </div>
       </section>
 
       <section className="card status-card">
         <div>
           <p className="eyebrow">Current Status</p>
-          <h3 className={`status ${armed ? 'armed' : 'disarmed'}`}>
+          <h3 className={`status ${armed ? 'armed' : 'disarmed'}`}
+              style={{ color: armed ? '#ef4444' : '#22c55e' }}>
             {state ? (armed ? 'ARMED' : 'DISARMED') : 'Loading...'}
           </h3>
-          <div className={`status-chip ${armed ? 'armed' : 'disarmed'}`}>
-            <span className="status-chip-dot" />
-            <span>{armed ? 'Key Locked' : 'Key Unlocked'}</span>
+          <div className={`status-chip ${armed ? 'armed' : 'disarmed'}`}
+               style={{ background: armed ? '#ef444420' : '#22c55e20', border: `1px solid ${armed ? '#ef4444' : '#22c55e'}` }}>
+            <span className="status-chip-dot" style={{ background: armed ? '#ef4444' : '#22c55e' }} />
+            <span style={{ color: armed ? '#ef4444' : '#22c55e' }}>{armed ? 'Key Locked' : 'Key Unlocked'}</span>
           </div>
           <p className="muted">
             {error
