@@ -208,6 +208,10 @@ app.get('/password', (req, res) => {
   res.type('html').send(renderAppShell('Sentinel Home Defense - Password Manager'));
 });
 
+app.get('/faces', (req, res) => {
+  res.type('html').send(renderAppShell('Sentinel Home Defense - Faces'))
+});
+
 async function startServer() {
   systemState = await readState();
 

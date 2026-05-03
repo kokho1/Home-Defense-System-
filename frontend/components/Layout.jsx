@@ -1,25 +1,28 @@
 import React from 'react';
- 
+
 export function Layout({ page, children }) {
   return (
     <>
       <div className="bg-glow"></div>
- 
+
       <header className="topbar container">
         <h1>Sentinel Home Defense</h1>
         <nav>
-          <a className={page === 'control' ? 'active' : ''} href="/">
+          <a className={page === 'control'  ? 'active' : ''} href="/">
             Control
           </a>
-          <a className={page === 'history' ? 'active' : ''} href="/history">
+          <a className={page === 'history'  ? 'active' : ''} href="/history">
             History
           </a>
           <a className={page === 'password' ? 'active' : ''} href="/password">
-            Password Manager
+            Password
+          </a>
+          <a className={page === 'faces'    ? 'active' : ''} href="/faces">
+            Faces
           </a>
         </nav>
       </header>
- 
+
       <main className="container">{children}</main>
     </>
   );

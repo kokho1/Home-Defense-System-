@@ -1,0 +1,24 @@
+idf_component_register(
+    SRCS
+        "main.c"
+        "camera.c"
+        "mqtt_client.c"
+        "face_pipeline.c"
+        "enrollments.c"
+        "led.c"
+    INCLUDE_DIRS
+        "."
+    REQUIRES
+        esp_wifi
+        esp_event
+        nvs_flash
+        esp_netif
+        esp-mqtt
+        esp_http_client
+        esp_timer
+        esp32-camera
+        esp-face           # from esp-who
+        freertos
+        log
+        nvs_flash
+)

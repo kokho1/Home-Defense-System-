@@ -1,0 +1,6 @@
+[submodule "esp_cam/esp_cam/esp32cam-face/components/esp-who"]
+	path = esp_cam/esp_cam/esp32cam-face/components/esp-who
+	url = https://github.com/espressif/esp-who.git
+[submodule "esp32cam-face/components/esp-who"]
+	path = esp32cam-face/components/esp-who
+	url = https://github.com/espressif/esp-who.git
